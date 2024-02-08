@@ -1,7 +1,11 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export enum UserType {
+  Admin = "Admin", User = "User"
+}
+
 enum UserTitle {
-  Mr, Mrs, Miss, Dr, Prof
+  Mr = "Mr", Mrs = "Mrs", Miss = "Miss", Dr = "Dr", Prof = "Prof"
 }
 
 interface UserBillingAddress {
@@ -33,6 +37,7 @@ interface UserDoc extends Document {
   salt: string;
   archived: boolean;
   deliverySameAsBilling: boolean;
+  role: UserType;
 }
 
 const UserBillingAddressSchema = new Schema({
@@ -64,6 +69,7 @@ const UserSchema = new Schema({
   salt: { type: String, required: true },
   archived: { type: Boolean, required: true, default: false },
   deliverySameAsBilling: { type: Boolean, required: true, default: true },
+  role: { type: String, default: UserType.User, enum: Object.values(UserType) }
 }, {
   toJSON: {
     transform(doc, ret) {

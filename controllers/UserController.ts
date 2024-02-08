@@ -1,21 +1,15 @@
 import { Request, Response } from 'express';
 
-import { GeneratePassword, GenerateSalt, GenerateSignature, ValidatePassword } from '../utils';
-import { CreateUserInput, UserLoginInput } from '../dto';
+import { FindUser, GeneratePassword, GenerateSalt, GenerateSignature, ValidatePassword } from '../utils';
+import { CreateUserInput, UpdateUserInput, UserLoginInput } from '../dto';
 import { User } from '../models';
 
-export const findUser = async (id: string | undefined, email?: string) => {
-  if (email) {
-    return await User.findOne({ email });
-  } else {
-    return await User.findById(id);
-  }
-}
+
 
 export const UserLogin = async (req: Request, res: Response) => {
   const { email, password } = <UserLoginInput>req.body;
 
-  const existingUser = await findUser(undefined, email);
+  const existingUser = await FindUser(undefined, email);
 
   if (!existingUser) return res.status(404).json({ message: "User not found" });
 
@@ -26,32 +20,29 @@ export const UserLogin = async (req: Request, res: Response) => {
     _id: existingUser._id,
     email: existingUser.email,
     firstName: existingUser.firstName,
-    lastName: existingUser.lastName
+    lastName: existingUser.lastName,
+    role: existingUser.role,
   })
 
   return res.json({ message: "User logged in successfully", data: signature });
 }
 
-export const GetUsers = async (req: Request, res: Response) => {
-  const users = await User.find({});
-  if (!users) return res.status(404).json({ message: "No users found" });
-  return res.json(users);
-}
+export const GetUser = async (req: Request, res: Response) => {
+  const { user } = req;
 
-export const GetUserById = async (req: Request, res: Response) => {
-  const userId = req.params.id;
-  if (!userId) return res.status(400).json({ message: "User ID is required" });
-
-  const user = await findUser(userId);
   if (!user) return res.status(404).json({ message: "User not found" });
 
-  return res.json(user);
+  const existingUser = await FindUser(user._id);
+
+  if (!existingUser) return res.status(404).json({ message: "User not found" });
+
+  return res.json(existingUser);
 }
 
 export const CreateUser = async (req: Request, res: Response) => {
   const { title, firstName, lastName, email, phone, billingAddress, deliveryAddress, deliverySameAsBilling, password } = <CreateUserInput>req.body;
 
-  const existingUser = await findUser(undefined, email);
+  const existingUser = await FindUser(undefined, email);
 
   if (existingUser) {
     return res.status(400).json({ message: "User already exists" });
@@ -90,19 +81,56 @@ export const CreateUser = async (req: Request, res: Response) => {
   return res.json(createdUser); //
 }
 
-export const UpdateUser = (req: Request, res: Response) => {
-  // update user in database
+export const UpdateUser = async (req: Request, res: Response) => {
+  const { title, firstName, lastName, email, phone, billingAddress, deliveryAddress } = <UpdateUserInput>req.body;
+  const { user } = req;
+
+
+  // Check if user exists
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const existingUser = await FindUser(user._id);
+
+  if (user) {
+    if (!existingUser) return res.status(404).json({ message: "User not found" });
+
+    existingUser.title = title;
+    existingUser.firstName = firstName;
+    existingUser.lastName = lastName;
+    existingUser.email = email;
+    existingUser.phone = phone;
+    existingUser.billingAddress.billingAddress1 = billingAddress.billingAddress1;
+    existingUser.billingAddress.billingAddress2 = billingAddress.billingAddress2;
+    existingUser.billingAddress.billingCity = billingAddress.billingCity;
+    existingUser.billingAddress.billingCounty = billingAddress.billingCounty;
+    existingUser.billingAddress.billingPostalCode = billingAddress.billingPostalCode;
+    existingUser.deliveryAddress.deliveryAddress1 = deliveryAddress.deliveryAddress1;
+    existingUser.deliveryAddress.deliveryAddress2 = deliveryAddress.deliveryAddress2;
+    existingUser.deliveryAddress.deliveryCity = deliveryAddress.deliveryCity;
+    existingUser.deliveryAddress.deliveryCounty = deliveryAddress.deliveryCounty;
+    existingUser.deliveryAddress.deliveryPostalCode = deliveryAddress.deliveryPostalCode;
+
+    const savedResult = await existingUser.save();
+    return res.json({ "message": "User updated", "data": savedResult });
+  }
+
 }
 
 export const DeleteUser = async (req: Request, res: Response) => {
-  const userId = req.params.id;
-  if (!userId) return res.status(400).json({ message: "User ID is required" });
+  const { user } = req;
 
-  const user = await findUser(userId);
-  if (!user) return res.status(404).json({ message: "User not found" });
+  if (!user) return res.status(404).json({ message: "Please sign in to perform this action" });
 
-  const deletedUser = await User.findByIdAndDelete(userId);
+  const existingUser = await FindUser(user._id);
+
+  if (!existingUser) return res.status(404).json({ message: "User not found" });
+
+  const deletedUser = await User.findByIdAndDelete(user._id);
   if (!deletedUser) return res.status(500).json({ message: "Error deleting user" });
 
   return res.json({ "message": "User deleted successfully", "data": deletedUser });
 }
+
+
+
+

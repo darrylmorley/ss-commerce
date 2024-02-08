@@ -6,3 +6,4 @@ export * from "./GiftCardRoutes";
 export * from "./CartRoutes";
 export * from "./OrderRoutes";
 export * from "./CollectionRoutes";
+export * from "./AdminRoutes";

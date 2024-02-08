@@ -1,4 +1,4 @@
-import { UserTitle, UserDeliveryAddress, UserBillingAddress } from "../models/User";
+import { UserTitle, UserDeliveryAddress, UserBillingAddress, UserType } from "../models/User";
 
 export interface CreateUserInput {
   firstName: string;
@@ -16,20 +16,10 @@ export interface UpdateUserInput {
   firstName: string;
   lastName: string;
   title: UserTitle;
-  billingAddress1: string;
-  billingAddress2: string;
-  billingCity: string;
-  billingCounty: string;
-  billingPostalCode: string;
-  deliveryAddress1: string;
-  deliveryAddress2: string;
-  deliveryCity: string;
-  deliveryCounty: string;
-  deliveryPostalCode: string;
+  billingAddress: UserBillingAddress;
+  deliveryAddress: UserDeliveryAddress;
   phone: string;
   email: string;
-  password: string;
-  deliverySameAsBilling: boolean;
 }
 
 export interface UserLoginInput {
@@ -42,4 +32,5 @@ export interface UserPayload {
   email: string;
   firstName: string;
   lastName: string;
+  role: UserType;
 }
