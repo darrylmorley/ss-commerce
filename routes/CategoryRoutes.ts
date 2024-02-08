@@ -1,16 +1,19 @@
 import express from 'express';
 
 import { CreateCategory, DeleteCategory, GetCategories, GetCategoryById, UpdateCategory } from '../controllers';
-import { Authenticate } from '../middleware';
+import { AuthenticateAdmin } from '../middleware';
 
 const router = express.Router();
 
+// public routes
 router.get("/categories", GetCategories);
 router.get("/category/:id", GetCategoryById);
 
-// auth routes
-router.post("/category", Authenticate, CreateCategory)
-router.put("/category/:id", Authenticate, UpdateCategory)
-router.delete("/category/:id", Authenticate, DeleteCategory)
+// admin routes
+router.post("/category", AuthenticateAdmin, CreateCategory)
+router.put("/category/:id", AuthenticateAdmin, UpdateCategory)
+router.delete("/category/:id", AuthenticateAdmin, DeleteCategory)
+
+
 
 export { router as CategoryRoutes }

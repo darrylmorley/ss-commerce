@@ -1,16 +1,17 @@
 import express from 'express';
 
 import { CreateCollection, DeleteCollection, GetCollectionById, GetCollections, UpdateCollection } from '../controllers';
-import { Authenticate } from '../middleware';
+import { AuthenticateAdmin } from '../middleware';
 
 const router = express.Router();
 
+// public routes
 router.get("/collections", GetCollections);
 router.get("/collection/:id", GetCollectionById);
 
-// Auth Routes
-router.post("/collection", Authenticate, CreateCollection)
-router.put("/collection/:id", Authenticate, UpdateCollection)
-router.delete("/collection/:id", Authenticate, DeleteCollection)
+// admin routes
+router.post("/collection", AuthenticateAdmin, CreateCollection)
+router.put("/collection/:id", AuthenticateAdmin, UpdateCollection)
+router.delete("/collection/:id", AuthenticateAdmin, DeleteCollection)
 
 export { router as CollectionRoutes }

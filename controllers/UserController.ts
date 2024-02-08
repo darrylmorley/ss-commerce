@@ -4,41 +4,11 @@ import { FindUser, GeneratePassword, GenerateSalt, GenerateSignature, ValidatePa
 import { CreateUserInput, UpdateUserInput, UserLoginInput } from '../dto';
 import { User } from '../models';
 
-
-
-export const UserLogin = async (req: Request, res: Response) => {
-  const { email, password } = <UserLoginInput>req.body;
-
-  const existingUser = await FindUser(undefined, email);
-
-  if (!existingUser) return res.status(404).json({ message: "User not found" });
-
-  const userPasswordValid = await ValidatePassword(password, existingUser.password, existingUser.salt);
-  if (!userPasswordValid) return res.status(401).json({ message: "Unauthorised" });
-
-  const signature = GenerateSignature({
-    _id: existingUser._id,
-    email: existingUser.email,
-    firstName: existingUser.firstName,
-    lastName: existingUser.lastName,
-    role: existingUser.role,
-  })
-
-  return res.json({ message: "User logged in successfully", data: signature });
-}
-
-export const GetUser = async (req: Request, res: Response) => {
-  const { user } = req;
-
-  if (!user) return res.status(404).json({ message: "User not found" });
-
-  const existingUser = await FindUser(user._id);
-
-  if (!existingUser) return res.status(404).json({ message: "User not found" });
-
-  return res.json(existingUser);
-}
-
+/**
+ * Create a new user
+ * @route POST /v1/user
+ * @access Public
+ */
 export const CreateUser = async (req: Request, res: Response) => {
   const { title, firstName, lastName, email, phone, billingAddress, deliveryAddress, deliverySameAsBilling, password } = <CreateUserInput>req.body;
 
@@ -81,6 +51,54 @@ export const CreateUser = async (req: Request, res: Response) => {
   return res.json(createdUser); //
 }
 
+/**
+ * User Login
+ * @route POST /v1/user
+ * @access Public
+ */
+export const UserLogin = async (req: Request, res: Response) => {
+  const { email, password } = <UserLoginInput>req.body;
+
+  const existingUser = await FindUser(undefined, email);
+
+  if (!existingUser) return res.status(404).json({ message: "User not found" });
+
+  const userPasswordValid = await ValidatePassword(password, existingUser.password, existingUser.salt);
+  if (!userPasswordValid) return res.status(401).json({ message: "Unauthorised" });
+
+  const signature = GenerateSignature({
+    _id: existingUser._id,
+    email: existingUser.email,
+    firstName: existingUser.firstName,
+    lastName: existingUser.lastName,
+    role: existingUser.role,
+  })
+
+  return res.json({ message: "User logged in successfully", data: signature });
+}
+
+/**
+ * Get user by token
+ * @route GET /v1/user
+ * @access Private/User
+ */
+export const GetUser = async (req: Request, res: Response) => {
+  const { user } = req;
+
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const existingUser = await FindUser(user._id);
+
+  if (!existingUser) return res.status(404).json({ message: "User not found" });
+
+  return res.json(existingUser);
+}
+
+/**
+ * Update user by token
+ * @route PUT /v1/user
+ * @access Private/User
+ */
 export const UpdateUser = async (req: Request, res: Response) => {
   const { title, firstName, lastName, email, phone, billingAddress, deliveryAddress } = <UpdateUserInput>req.body;
   const { user } = req;
@@ -116,6 +134,11 @@ export const UpdateUser = async (req: Request, res: Response) => {
 
 }
 
+/**
+ * Delete user by token
+ * @route PUT /v1/user
+ * @access Private/User
+ */
 export const DeleteUser = async (req: Request, res: Response) => {
   const { user } = req;
 
@@ -129,6 +152,32 @@ export const DeleteUser = async (req: Request, res: Response) => {
   if (!deletedUser) return res.status(500).json({ message: "Error deleting user" });
 
   return res.json({ "message": "User deleted successfully", "data": deletedUser });
+}
+
+/**
+ * Get all users
+ * @route GET /v1/users
+ * @access Private/Admin
+ */
+export const GetUsers = async (req: Request, res: Response) => {
+  const users = await User.find({});
+  if (!users) return res.status(404).json({ message: "No users found" });
+  return res.json(users);
+}
+
+/**
+ * Get user by Id
+ * @route GET /v1/user/:id
+ * @access Private/Admin
+ */
+export const GetUserById = async (req: Request, res: Response) => {
+  const userId = req.params.id;
+  if (!userId) return res.status(400).json({ message: "User ID is required" });
+
+  const user = await FindUser(userId);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  return res.json(user);
 }
 
 

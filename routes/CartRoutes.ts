@@ -1,16 +1,19 @@
 import express from 'express';
 import { AddToCart, CreateCart, EmptyCart, GetCartById, GetCarts, RemoveFromCart } from '../controllers';
-import { Authenticate } from '../middleware';
+import { Authenticate, AuthenticateAdmin } from '../middleware';
 
 const router = express.Router();
 
-router.get("/cart/:id", GetCartById);
+// public routes
 router.post("/cart", CreateCart)
-router.put("/cart/:id", AddToCart)
-router.delete("/cart/:cartId/:itemId", RemoveFromCart)
-router.delete("/cart/:id/empty-cart/", EmptyCart)
 
 // auth routes
-router.get("/carts", Authenticate, GetCarts)
+router.get("/cart/:id", Authenticate, GetCartById);
+router.put("/cart/:id", Authenticate, AddToCart)
+router.put("/cart/:cartId/:itemId", Authenticate, RemoveFromCart)
+router.put("/cart/:id/empty-cart/", Authenticate, EmptyCart)
+
+// admin routes
+router.get("/carts", AuthenticateAdmin, GetCarts)
 
 export { router as CartRoutes }

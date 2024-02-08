@@ -1,16 +1,17 @@
 import express from 'express';
 
 import { CreateProduct, DeleteProduct, GetProductById, GetProducts, UpdateProduct } from '../controllers';
-import { Authenticate } from '../middleware';
+import { AuthenticateAdmin } from '../middleware';
 
 const router = express.Router();
 
+// public routes
 router.get('/products', GetProducts);
 router.get("/product/:id", GetProductById);
 
-// auth routes
-router.post("/product/:id", Authenticate, CreateProduct)
-router.put("/product/:id", Authenticate, UpdateProduct)
-router.delete("/product/:id", Authenticate, DeleteProduct)
+// admin routes
+router.post("/product/:id", AuthenticateAdmin, CreateProduct)
+router.put("/product/:id", AuthenticateAdmin, UpdateProduct)
+router.delete("/product/:id", AuthenticateAdmin, DeleteProduct)
 
 export { router as ProductRoutes }
